@@ -1,0 +1,8 @@
+# net-healthcheck --config targets file
+# One target per line, pipe-separated: host|port|url|expected_status|skip_tls
+# Blank lines and lines starting with # are ignored.
+# url, expected_status and skip_tls may be left blank to use defaults.
+
+github.com|443|https://github.com|200|0
+example.com|443|https://example.com|200|0
+127.0.0.1|8080|http://127.0.0.1:8080/health|200|1

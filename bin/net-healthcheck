@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# net-healthcheck -- OSI-layer connectivity diagnostics for a target host.
+#
+# Runs DNS resolution, TCP reachability, HTTP(S) reachability, and TLS
+# certificate expiry checks against a target, and exits with a single
+# Nagios-convention status code covering the worst result found.
+#
+# Usage:
+#   net-healthcheck --host example.com --port 443 --url https://example.com
+#   net-healthcheck --config path/to/targets.conf
+#   net-healthcheck --host example.com --port 443 --json
+#
+# Exit codes: 0 OK, 1 WARNING, 2 CRITICAL, 3 UNKNOWN
+
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=../lib/common.sh
+. "${SCRIPT_DIR}/lib/common.sh"
+# shellcheck source=../lib/checks.sh
+. "${SCRIPT_DIR}/lib/checks.sh"
+
+usage() {
+  cat <<'EOF'
+net-healthcheck - OSI-layer network diagnostics (DNS, TCP, HTTP, TLS expiry)
+
+Usage:
+  net-healthcheck --host HOST [--port PORT] [--url URL] [options]
+  net-healthcheck --config FILE [options]
+
+Options:
+  --host HOST          Hostname to check DNS resolution, TCP, and TLS expiry against
+  --port PORT          TCP port to check (default: 443 if --url is https, else 80)
+  --url URL            URL to check via HTTP(S) request
+  --expect-status CODE Expected HTTP status code (default: 200)
+  --skip-tls           Skip the TLS certificate expiry check
+  --config FILE        Run checks for every target line in FILE (see conf/ example)
+  --json               Emit a single JSON summary instead of human-readable lines
+  --help                Show this help and exit
+
+Exit codes: 0 OK, 1 WARNING, 2 CRITICAL, 3 UNKNOWN
+EOF
+}
+
+HOST=""
+PORT=""
+URL=""
+EXPECT_STATUS="200"
+SKIP_TLS=0
+CONFIG_FILE=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) HOST="$2"; shift 2 ;;
+    --port) PORT="$2"; shift 2 ;;
+    --url) URL="$2"; shift 2 ;;
+    --expect-status) EXPECT_STATUS="$2"; shift 2 ;;
+    --skip-tls) SKIP_TLS=1; shift ;;
+    --config) CONFIG_FILE="$2"; shift 2 ;;
+    --json) NHC_JSON_MODE=1; shift ;;
+    --help|-h) usage; exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; usage >&2; exit 3 ;;
+  esac
+done
+
+run_target() {
+  local host="$1" port="$2" url="$3" expect="$4" skip_tls="$5"
+
+  if [ -n "$host" ]; then
+    check_dns "$host"
+  fi
+
+  if [ -n "$host" ] && [ -n "$port" ]; then
+    check_tcp "$host" "$port"
+  fi
+
+  if [ -n "$url" ]; then
+    check_http "$url" "$expect"
+  fi
+
+  if [ "$skip_tls" != "1" ] && [ -n "$host" ] && [ -n "$port" ]; then
+    check_tls_expiry "$host" "$port"
+  fi
+}
+
+if [ -n "$CONFIG_FILE" ]; then
+  if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Config file not found: $CONFIG_FILE" >&2
+    exit 3
+  fi
+  while IFS='|' read -r c_host c_port c_url c_expect c_skip_tls; do
+    case "$c_host" in ''|'#'*) continue ;; esac
+    run_target "$c_host" "${c_port:-443}" "$c_url" "${c_expect:-200}" "${c_skip_tls:-0}"
+  done < "$CONFIG_FILE"
+else
+  if [ -z "$HOST" ] && [ -z "$URL" ]; then
+    echo "Need at least --host or --url (or --config). See --help." >&2
+    exit 3
+  fi
+  if [ -z "$PORT" ]; then
+    case "$URL" in
+      https://*) PORT=443 ;;
+      http://*) PORT=80 ;;
+      *) PORT=443 ;;
+    esac
+  fi
+  run_target "$HOST" "$PORT" "$URL" "$EXPECT_STATUS" "$SKIP_TLS"
+fi
+
+if [ "$NHC_JSON_MODE" = "1" ]; then
+  emit_json_summary
+else
+  echo ""
+  echo "worst status: $(status_label "$NHC_WORST")"
+fi
+
+exit "$NHC_WORST"
