@@ -1,0 +1,11 @@
+# Go tests: 2026-10-23T10:19Z on Darwin arm64; go version go1.27.2 darwin/arm64
+
+$ gofmt -l .
+(no files listed = formatted)
+
+$ go vet ./...
+ok
+
+$ go test -race -cover -count=1 ./...
+ok  	github.com/dineshravichandiran/net-healthcheck/go/cmd/net-healthcheck	1.607s	coverage: 94.7% of statements
+ok  	github.com/dineshravichandiran/net-healthcheck/go/internal/nhc	2.588s	coverage: 97.7% of statements
