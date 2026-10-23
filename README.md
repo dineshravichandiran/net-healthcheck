@@ -59,6 +59,27 @@ targets instead of assuming the logic was right:
    harmless, but looks like a failure on a quick skim. Fixed by `disown`ing
    each background PID right after starting it.
 
+## What's new: a Go version (`go/`)
+
+The same tool rewritten in Go, standard library only, with the same flags, output and Nagios exit codes, plus
+per-check timeouts (`context`), concurrent checks (`--workers`), a JSON config, a one-line Nagios mode with
+performance data, and a 14.5 MB container image.
+
+```bash
+cd go
+make test      # go test -race -cover   (94.7% and 97.7% statement coverage on the last run)
+make build     # ./dist/net-healthcheck
+make cross     # linux/amd64, linux/arm64, darwin/arm64
+make docker    # small non-root image
+./dist/net-healthcheck --host example.com --port 443 --url https://example.com --nagios
+bash scripts/parity.sh   # run Bash and Go against the same targets: 12 of 12 identical on the last run
+```
+
+Evidence from real runs is in `docs/evidence/`; the comparison is in [docs/PARITY.md](docs/PARITY.md);
+interview notes are in [docs/INTERVIEW-NOTES.md](docs/INTERVIEW-NOTES.md).
+Honest status: the GitHub Actions workflow for the Go code (`.github/workflows/go.yml`) is written and its YAML parses,
+and it passed on GitHub Actions (gofmt, vet, race tests, build on the `feat/platform-addons` branch); everything above was also run locally.
+
 ## Usage
 
 ```bash

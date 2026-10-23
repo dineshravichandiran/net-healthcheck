@@ -1,0 +1,30 @@
+name: go
+
+on:
+  push:
+    paths: ["go/**", ".github/workflows/go.yml"]
+  pull_request:
+    paths: ["go/**", ".github/workflows/go.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+      - name: gofmt
+        run: make fmt-check
+      - name: vet
+        run: make vet
+      - name: test (race, coverage)
+        run: make test
+      - name: build
+        run: make build

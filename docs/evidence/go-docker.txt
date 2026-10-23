@@ -1,0 +1,22 @@
+# Docker image build and run: 2026-10-23T10:20Z
+$ make docker
+#14 unpacking to docker.io/library/net-healthcheck-go:8cea299 0.0s done
+#14 DONE 0.3s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/to7oqzyphgm27bdwb9pmc6gjp
+
+$ docker images net-healthcheck-go
+REPOSITORY           TAG       SIZE
+net-healthcheck-go   8cea299   14.5MB
+
+$ docker run --rm net-healthcheck-go:8cea299 --version
+net-healthcheck-go 8cea299
+
+$ docker run ... --host example.com --url https://example.com
+[OK      ] dns:example.com        resolved to 104.20.23.154 (via go resolver)
+[OK      ] tcp:example.com:443    connected in 21ms (via go net)
+[OK      ] http:https://example.com HTTP 200 in 0.052s
+[OK      ] tls:example.com:443    certificate valid for 64d (Dec 25 22:56:35 2026 GMT)
+
+worst status: OK
+container exit code: 0

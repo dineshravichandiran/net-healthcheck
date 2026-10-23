@@ -1,0 +1,21 @@
+# Bash vs Go parity run: 2026-10-23T10:21Z on Darwin arm64; go version go1.27.2 darwin/arm64; OpenSSL 4.0.3 29 Sep 2026 (Library: OpenSSL 4.0.3 29 Sep 2026)
+scenario                           bash      go        same per-check statuses?
+--------                           ----      --        ------------------------
+HTTP 200                           exit 0    exit 0    yes
+HTTP 404 (expected 200)            exit 2    exit 2    yes
+HTTP 404 (expected 404)            exit 0    exit 0    yes
+HTTP 302 redirect                  exit 1    exit 1    yes
+closed TCP port                    exit 2    exit 2    yes
+TLS cert valid 365d                exit 0    exit 0    yes
+TLS cert expiring in 20d           exit 1    exit 1    yes
+TLS cert expiring in 3d            exit 2    exit 2    yes
+TLS cert already expired           exit 2    exit 2    yes
+TLS on a plain HTTP port           exit 2    exit 2    yes
+name that does not resolve         exit 2    exit 2    yes
+real site (example.com)            exit 0    exit 0    yes
+
+12 of 12 scenarios identical (exit code and every per-check status).
+
+JSON shape (HTTP 200 scenario):
+  bash: {"worst_status":"OK","checks":[{"check":"dns:127.0.0.1","status":"OK","message":"already an IP literal, nothing to resolve"},{"check":"tcp:127.0.0.1:53575","status":"OK","message":"connected in 32ms (via nc)"},{"check":"http:http://127.0.0.1:53575/ok","status":"OK","message":"HTTP 200 in 0.000499s"}]}
+  go:   {"worst_status":"OK","checks":[{"check":"dns:127.0.0.1","status":"OK","message":"already an IP literal, nothing to resolve","duration_ms":0.001},{"check":"tcp:127.0.0.1:53575","status":"OK","message":"connected in 0ms (via go net)","duration_ms":0.259},{"check":"http:http://127.0.0.1:53575/ok","status":"OK","message":"HTTP 200 in 0.001s","duration_ms":0.638}]}
