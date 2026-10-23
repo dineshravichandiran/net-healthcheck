@@ -45,7 +45,7 @@ certificates of different ages, and the results were identical. It has tests wit
 ## Limits (say these out loud, they build trust)
 - It checks the leaf certificate only, not the chain or revocation.
 - The HTTP check is a GET with a timeout, with no retries and no body check.
-- The GitHub Actions workflow for the Go code is written but has not run on GitHub yet.
+- The Go workflow passed on GitHub Actions once (on the feature branch); it has not been through a pull request or a release process.
 - It was run on macOS arm64 and in a Linux container; the linux/amd64 and linux/arm64 binaries were built but not run.
 
 ## What I did not do

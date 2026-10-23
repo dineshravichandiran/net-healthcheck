@@ -78,7 +78,7 @@ bash scripts/parity.sh   # run Bash and Go against the same targets: 12 of 12 id
 Evidence from real runs is in `docs/evidence/`; the comparison is in [docs/PARITY.md](docs/PARITY.md);
 interview notes are in [docs/INTERVIEW-NOTES.md](docs/INTERVIEW-NOTES.md).
 Honest status: the GitHub Actions workflow for the Go code (`.github/workflows/go.yml`) is written and its YAML parses,
-but it has **not run on GitHub yet**; everything above was run locally.
+and it passed on GitHub Actions (gofmt, vet, race tests, build on the `feat/platform-addons` branch); everything above was also run locally.
 
 ## Usage
 
